@@ -237,6 +237,33 @@ class _HomeScreenState extends State<HomeScreen> {
   int vibrationIntensity = 50; // Vibration intensity (0-100)
   int sensitivityLevel = 5; // Sensitivity level (1-10)
   int _selectedIndex = 0; // For sidebar navigation
+  bool isBluetoothConnected = false; // Bluetooth connection status
+  int headphoneBattery = 0; // Headphone battery percentage
+  int microcontrollerBattery = 0; // Microcontroller battery percentage
+  bool isLoading = false; // For refresh animation
+
+  // Simulate fetching Bluetooth and battery status
+  Future<void> _fetchDeviceStatus() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    // Simulate a network/database call
+    await Future.delayed(Duration(seconds: 2));
+
+    setState(() {
+      isBluetoothConnected = true; // Simulate Bluetooth connected
+      headphoneBattery = 85; // Simulate headphone battery
+      microcontrollerBattery = 72; // Simulate microcontroller battery
+      isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDeviceStatus(); // Fetch status when the screen loads
+  }
 
   void _logout(BuildContext context) async {
     bool confirmLogout = await showDialog(
@@ -352,7 +379,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Home Screen (Status Page)
   Widget _buildHomeScreen() {
     return Center(
       child: Column(
@@ -361,7 +387,106 @@ class _HomeScreenState extends State<HomeScreen> {
           Text("NotiPhones",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           SizedBox(height: 40),
-          // Add your home screen content here
+          // Bluetooth Status
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.teal[100],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 5,
+                  spreadRadius: 2,
+                  offset: Offset(0, 3),
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                Text("Bluetooth Status", style: TextStyle(fontSize: 18)),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      isBluetoothConnected
+                          ? Icons.bluetooth_connected
+                          : Icons.bluetooth_disabled,
+                      color: isBluetoothConnected ? Colors.green : Colors.red,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      isBluetoothConnected
+                          ? "Device Connected"
+                          : "Disconnected",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isBluetoothConnected ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          // Battery Status
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.teal[100],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 5,
+                  spreadRadius: 2,
+                  offset: Offset(0, 3),
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                Text("Battery Status", style: TextStyle(fontSize: 18)),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        Icon(Icons.headset, size: 40, color: Colors.teal[900]),
+                        SizedBox(height: 5),
+                        Text("Headphones"),
+                        Text("$headphoneBattery%"),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Icon(Icons.memory, size: 40, color: Colors.teal[900]),
+                        SizedBox(height: 5),
+                        Text("Microcontroller"),
+                        Text("$microcontrollerBattery%"),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          // Refresh Button
+          isLoading
+              ? CircularProgressIndicator(color: Colors.teal[900])
+              : ElevatedButton(
+                  onPressed: _fetchDeviceStatus,
+                  child: Text("Refresh Status"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal[900],
+                    foregroundColor: Colors.white,
+                  ),
+                ),
         ],
       ),
     );
