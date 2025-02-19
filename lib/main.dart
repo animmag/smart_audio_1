@@ -233,34 +233,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FlutterSecureStorage secureStorage = FlutterSecureStorage();
   bool isListening = false; // Listening mode toggle
-  bool isBluetoothConnected = false; // Bluetooth connection status
-  int headphoneBattery = 0; // Headphone battery percentage
-  int microcontrollerBattery = 0; // Microcontroller battery percentage
-  bool isLoading = false; // For refresh animation
+  String wakeWord = "Anavi"; // Default wake word
+  int vibrationIntensity = 50; // Vibration intensity (0-100)
+  int sensitivityLevel = 5; // Sensitivity level (1-10)
   int _selectedIndex = 0; // For sidebar navigation
-
-  // Simulate fetching Bluetooth and battery status
-  Future<void> _fetchDeviceStatus() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    // Simulate a network/database call
-    await Future.delayed(Duration(seconds: 2));
-
-    setState(() {
-      isBluetoothConnected = true; // Simulate Bluetooth connected
-      headphoneBattery = 85; // Simulate headphone battery
-      microcontrollerBattery = 72; // Simulate microcontroller battery
-      isLoading = false;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchDeviceStatus(); // Fetch status when the screen loads
-  }
 
   void _logout(BuildContext context) async {
     bool confirmLogout = await showDialog(
@@ -324,10 +300,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(context); // Close the drawer
               },
             ),
-            // Listening Mode
+            // Device Features
             ListTile(
-              leading: Icon(Icons.volume_up),
-              title: Text("Listening Mode"),
+              leading: Icon(Icons.settings_input_component),
+              title: Text("Device Features"),
               selected: _selectedIndex == 1,
               onTap: () {
                 _onItemTapped(1);
@@ -367,8 +343,8 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (_selectedIndex) {
       case 0: // Home
         return _buildHomeScreen();
-      case 1: // Listening Mode
-        return _buildListeningModeScreen();
+      case 1: // Device Features
+        return _buildDeviceFeaturesScreen();
       case 2: // Settings
         return SettingsScreen();
       default:
@@ -385,129 +361,27 @@ class _HomeScreenState extends State<HomeScreen> {
           Text("NotiPhones",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           SizedBox(height: 40),
-          // Bluetooth Status
-          Container(
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.teal[100],
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 5,
-                  spreadRadius: 2,
-                  offset: Offset(0, 3),
-                )
-              ],
-            ),
-            child: Column(
-              children: [
-                Text("Bluetooth Status", style: TextStyle(fontSize: 18)),
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      isBluetoothConnected
-                          ? Icons.bluetooth_connected
-                          : Icons.bluetooth_disabled,
-                      color: isBluetoothConnected ? Colors.green : Colors.red,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      isBluetoothConnected
-                          ? "Device Connected"
-                          : "Disconnected",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isBluetoothConnected ? Colors.green : Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          // Battery Status
-          Container(
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.teal[100],
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 5,
-                  spreadRadius: 2,
-                  offset: Offset(0, 3),
-                )
-              ],
-            ),
-            child: Column(
-              children: [
-                Text("Battery Status", style: TextStyle(fontSize: 18)),
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Column(
-                      children: [
-                        Icon(Icons.headset, size: 40, color: Colors.teal[900]),
-                        SizedBox(height: 5),
-                        Text("Headphones"),
-                        Text("$headphoneBattery%"),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Icon(Icons.memory, size: 40, color: Colors.teal[900]),
-                        SizedBox(height: 5),
-                        Text("Microcontroller"),
-                        Text("$microcontrollerBattery%"),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          // Refresh Button
-          isLoading
-              ? CircularProgressIndicator(color: Colors.teal[900])
-              : ElevatedButton(
-                  onPressed: _fetchDeviceStatus,
-                  child: Text("Refresh Status"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal[900],
-                    foregroundColor: Colors.white,
-                  ),
-                ),
+          // Add your home screen content here
         ],
       ),
     );
   }
 
-  // Listening Mode Screen
-  Widget _buildListeningModeScreen() {
-    return Center(
+  // Device Features Screen
+  Widget _buildDeviceFeaturesScreen() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Listening Mode",
+          Text("Device Features",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isListening ? Icons.volume_up : Icons.volume_off,
-                color: isListening ? Colors.green : Colors.red,
-              ),
-              SizedBox(width: 10),
-              Switch(
+          // Listening Mode
+          Card(
+            child: ListTile(
+              title: Text("Listening Mode"),
+              trailing: Switch(
                 value: isListening,
                 onChanged: (value) {
                   setState(() {
@@ -515,7 +389,151 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
               ),
-            ],
+            ),
+          ),
+          SizedBox(height: 10),
+          // Set Wake Word
+          Card(
+            child: ListTile(
+              title: Text("Set Wake Word"),
+              subtitle: Text("Current: $wakeWord"),
+              trailing: IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () {
+                  _showWakeWordDialog();
+                },
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          // Vibration Settings
+          Card(
+            child: ListTile(
+              title: Text("Vibration Settings"),
+              subtitle: Text("Intensity: $vibrationIntensity%"),
+              trailing: IconButton(
+                icon: Icon(Icons.settings),
+                onPressed: () {
+                  _showVibrationSettingsDialog();
+                },
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          // Sensitivity Settings
+          Card(
+            child: ListTile(
+              title: Text("Sensitivity Settings"),
+              subtitle: Text("Level: $sensitivityLevel"),
+              trailing: IconButton(
+                icon: Icon(Icons.settings),
+                onPressed: () {
+                  _showSensitivitySettingsDialog();
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Dialog to change the wake word
+  void _showWakeWordDialog() {
+    TextEditingController wakeWordController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Set Wake Word"),
+        content: TextField(
+          controller: wakeWordController,
+          decoration: InputDecoration(hintText: "Enter new wake word"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                wakeWord = wakeWordController.text;
+              });
+              Navigator.pop(context);
+            },
+            child: Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Dialog to adjust vibration intensity
+  void _showVibrationSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Vibration Intensity"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Adjust vibration intensity (0-100):"),
+            Slider(
+              value: vibrationIntensity.toDouble(),
+              min: 0,
+              max: 100,
+              divisions: 100,
+              onChanged: (value) {
+                setState(() {
+                  vibrationIntensity = value.round();
+                });
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Dialog to adjust sensitivity level
+  void _showSensitivitySettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Sensitivity Level"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Adjust sensitivity level (1-10):"),
+            Slider(
+              value: sensitivityLevel.toDouble(),
+              min: 1,
+              max: 10,
+              divisions: 9,
+              onChanged: (value) {
+                setState(() {
+                  sensitivityLevel = value.round();
+                });
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Save"),
           ),
         ],
       ),
