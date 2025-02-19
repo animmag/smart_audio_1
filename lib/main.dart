@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(MyApp());
@@ -259,10 +260,21 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _loadSavedSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      vibrationIntensity =
+          prefs.getInt('vibrationIntensity') ?? 50; // Default: 50%
+      sensitivityLevel =
+          prefs.getInt('sensitivityLevel') ?? 5; // Default: Level 5
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    _fetchDeviceStatus(); // Fetch status when the screen loads
+    // _fetchDeviceStatus(); // Fetch status when the screen loads
+    _loadSavedSettings(); // Load saved values when the app starts
   }
 
   void _logout(BuildContext context) async {
@@ -530,6 +542,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 10),
+          // Set Wake Word
+          Card(
+            child: ListTile(
+              title: Text("Set Wake Word"),
+              subtitle: Text("Current: $wakeWord"),
+              trailing: IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () {
+                  _showWakeWordDialog();
+                },
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
           // Vibration Settings
           Card(
             child: ListTile(
@@ -562,34 +588,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// Dialog to adjust vibration intensity
-  void _showVibrationSettingsDialog() {
+  void _showWakeWordDialog() {
+    TextEditingController wakeWordController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Vibration Intensity"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Current: $vibrationIntensity%"),
-            SizedBox(height: 10),
-            Slider(
-              value: vibrationIntensity.toDouble(),
-              min: 0,
-              max: 100,
-              divisions: 100,
-              label: "$vibrationIntensity%",
-              onChanged: (value) {
-                setState(() {
-                  vibrationIntensity = value.round();
-                });
-              },
-            ),
-          ],
+        title: Text("Set Wake Word"),
+        content: TextField(
+          controller: wakeWordController,
+          decoration: InputDecoration(hintText: "Enter new wake word"),
         ),
         actions: [
           TextButton(
             onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                wakeWord = wakeWordController.text;
+              });
               Navigator.pop(context);
             },
             child: Text("Save"),
@@ -599,39 +619,119 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// Dialog to adjust sensitivity level
-  void _showSensitivitySettingsDialog() {
+  Future<void> _saveVibrationIntensity(int value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('vibrationIntensity', value);
+  }
+
+  Future<void> _saveSensitivityLevel(int value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('sensitivityLevel', value);
+  }
+
+  // Dialog to adjust vibration intensity
+  void _showVibrationSettingsDialog() {
+    int tempVibrationIntensity = vibrationIntensity; // Temporary variable
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Sensitivity Level"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Current: $sensitivityLevel"),
-            SizedBox(height: 10),
-            Slider(
-              value: sensitivityLevel.toDouble(),
-              min: 1,
-              max: 10,
-              divisions: 9,
-              label: "$sensitivityLevel",
-              onChanged: (value) {
-                setState(() {
-                  sensitivityLevel = value.round();
-                });
-              },
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text("Vibration Intensity"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Current: $tempVibrationIntensity%"),
+                SizedBox(height: 10),
+                Slider(
+                  value: tempVibrationIntensity.toDouble(),
+                  min: 0,
+                  max: 100,
+                  divisions: 100,
+                  label: "$tempVibrationIntensity%",
+                  onChanged: (value) {
+                    setState(() {
+                      tempVibrationIntensity = value.round();
+                    });
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("Save"),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  setState(() {
+                    vibrationIntensity = tempVibrationIntensity;
+                  });
+                  await _saveVibrationIntensity(
+                      vibrationIntensity); // Save value
+                  Navigator.pop(context);
+                },
+                child: Text("Save"),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+// Dialog to adjust sensitivity level
+  void _showSensitivitySettingsDialog() {
+    int tempSensitivityLevel = sensitivityLevel; // Temporary variable
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text("Sensitivity Level"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Current: $tempSensitivityLevel"),
+                SizedBox(height: 10),
+                Slider(
+                  value: tempSensitivityLevel.toDouble(),
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  label: "$tempSensitivityLevel",
+                  onChanged: (value) {
+                    setState(() {
+                      tempSensitivityLevel = value.round();
+                    });
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  setState(() {
+                    sensitivityLevel = tempSensitivityLevel;
+                  });
+                  await _saveSensitivityLevel(sensitivityLevel); // Save value
+                  Navigator.pop(context);
+                },
+                child: Text("Save"),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
