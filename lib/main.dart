@@ -232,9 +232,35 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  bool isListening = false;
-  bool isDarkMode = false;
-  bool notificationsEnabled = true;
+  bool isListening = false; // Listening mode toggle
+  bool isBluetoothConnected = false; // Bluetooth connection status
+  int headphoneBattery = 0; // Headphone battery percentage
+  int microcontrollerBattery = 0; // Microcontroller battery percentage
+  bool isLoading = false; // For refresh animation
+  int _selectedIndex = 0; // For sidebar navigation
+
+  // Simulate fetching Bluetooth and battery status
+  Future<void> _fetchDeviceStatus() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    // Simulate a network/database call
+    await Future.delayed(Duration(seconds: 2));
+
+    setState(() {
+      isBluetoothConnected = true; // Simulate Bluetooth connected
+      headphoneBattery = 85; // Simulate headphone battery
+      microcontrollerBattery = 72; // Simulate microcontroller battery
+      isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDeviceStatus(); // Fetch status when the screen loads
+  }
 
   void _logout(BuildContext context) async {
     bool confirmLogout = await showDialog(
@@ -263,15 +289,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _toggleTheme() {
+  // Handle sidebar navigation
+  void _onItemTapped(int index) {
     setState(() {
-      isDarkMode = !isDarkMode;
-    });
-  }
-
-  void _toggleNotifications() {
-    setState(() {
-      notificationsEnabled = !notificationsEnabled;
+      _selectedIndex = index;
     });
   }
 
@@ -293,22 +314,38 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontSize: 40, color: Colors.white)),
               ),
             ),
+            // Home Icon
             ListTile(
-              title: Text("Listening Mode"),
+              leading: Icon(Icons.home),
+              title: Text("Home"),
+              selected: _selectedIndex == 0,
               onTap: () {
-                Navigator.pop(context);
+                _onItemTapped(0);
+                Navigator.pop(context); // Close the drawer
               },
             ),
+            // Listening Mode
             ListTile(
-              title: Text("Settings"),
+              leading: Icon(Icons.volume_up),
+              title: Text("Listening Mode"),
+              selected: _selectedIndex == 1,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen()),
-                );
+                _onItemTapped(1);
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            // Settings
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text("Settings"),
+              selected: _selectedIndex == 2,
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context); // Close the drawer
               },
             ),
             Spacer(),
+            // Logout Button
             ListTile(
               title: ElevatedButton(
                 onPressed: () => _logout(context),
@@ -321,53 +358,166 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("NotiPhones",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 40),
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.teal[100],
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 5,
-                    spreadRadius: 2,
-                    offset: Offset(0, 3),
-                  )
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text("Listening Mode", style: TextStyle(fontSize: 18)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Status: "),
-                      Icon(
-                        isListening ? Icons.volume_up : Icons.volume_off,
-                        color: isListening ? Colors.green : Colors.red,
-                      ),
-                      Switch(
-                        value: isListening,
-                        onChanged: (value) {
-                          setState(() {
-                            isListening = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+      body: _buildBody(), // Dynamically build the body based on selected index
+    );
+  }
+
+  // Build the body based on the selected index
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0: // Home
+        return _buildHomeScreen();
+      case 1: // Listening Mode
+        return _buildListeningModeScreen();
+      case 2: // Settings
+        return SettingsScreen();
+      default:
+        return _buildHomeScreen();
+    }
+  }
+
+  // Home Screen (Status Page)
+  Widget _buildHomeScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("NotiPhones",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          SizedBox(height: 40),
+          // Bluetooth Status
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.teal[100],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 5,
+                  spreadRadius: 2,
+                  offset: Offset(0, 3),
+                )
+              ],
             ),
-          ],
-        ),
+            child: Column(
+              children: [
+                Text("Bluetooth Status", style: TextStyle(fontSize: 18)),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      isBluetoothConnected
+                          ? Icons.bluetooth_connected
+                          : Icons.bluetooth_disabled,
+                      color: isBluetoothConnected ? Colors.green : Colors.red,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      isBluetoothConnected
+                          ? "Device Connected"
+                          : "Disconnected",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isBluetoothConnected ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          // Battery Status
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.teal[100],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 5,
+                  spreadRadius: 2,
+                  offset: Offset(0, 3),
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                Text("Battery Status", style: TextStyle(fontSize: 18)),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        Icon(Icons.headset, size: 40, color: Colors.teal[900]),
+                        SizedBox(height: 5),
+                        Text("Headphones"),
+                        Text("$headphoneBattery%"),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Icon(Icons.memory, size: 40, color: Colors.teal[900]),
+                        SizedBox(height: 5),
+                        Text("Microcontroller"),
+                        Text("$microcontrollerBattery%"),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          // Refresh Button
+          isLoading
+              ? CircularProgressIndicator(color: Colors.teal[900])
+              : ElevatedButton(
+                  onPressed: _fetchDeviceStatus,
+                  child: Text("Refresh Status"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal[900],
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  // Listening Mode Screen
+  Widget _buildListeningModeScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("Listening Mode",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isListening ? Icons.volume_up : Icons.volume_off,
+                color: isListening ? Colors.green : Colors.red,
+              ),
+              SizedBox(width: 10),
+              Switch(
+                value: isListening,
+                onChanged: (value) {
+                  setState(() {
+                    isListening = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
