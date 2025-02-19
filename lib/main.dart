@@ -273,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // _fetchDeviceStatus(); // Fetch status when the screen loads
+    _fetchDeviceStatus(); // Fetch status when the screen loads
     _loadSavedSettings(); // Load saved values when the app starts
   }
 
