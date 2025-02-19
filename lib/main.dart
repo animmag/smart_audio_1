@@ -492,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Device Features Screen
+// Device Features Screen
   Widget _buildDeviceFeaturesScreen() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -506,27 +506,26 @@ class _HomeScreenState extends State<HomeScreen> {
           Card(
             child: ListTile(
               title: Text("Listening Mode"),
-              trailing: Switch(
-                value: isListening,
-                onChanged: (value) {
-                  setState(() {
-                    isListening = value;
-                  });
-                },
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          // Set Wake Word
-          Card(
-            child: ListTile(
-              title: Text("Set Wake Word"),
-              subtitle: Text("Current: $wakeWord"),
-              trailing: IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () {
-                  _showWakeWordDialog();
-                },
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isListening ? "On" : "Off",
+                    style: TextStyle(
+                      color: isListening ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Switch(
+                    value: isListening,
+                    onChanged: (value) {
+                      setState(() {
+                        isListening = value;
+                      });
+                    },
+                  ),
+                ],
               ),
             ),
           ),
@@ -563,39 +562,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Dialog to change the wake word
-  void _showWakeWordDialog() {
-    TextEditingController wakeWordController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Set Wake Word"),
-        content: TextField(
-          controller: wakeWordController,
-          decoration: InputDecoration(hintText: "Enter new wake word"),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                wakeWord = wakeWordController.text;
-              });
-              Navigator.pop(context);
-            },
-            child: Text("Save"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Dialog to adjust vibration intensity
+// Dialog to adjust vibration intensity
   void _showVibrationSettingsDialog() {
     showDialog(
       context: context,
@@ -604,12 +571,14 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Adjust vibration intensity (0-100):"),
+            Text("Current: $vibrationIntensity%"),
+            SizedBox(height: 10),
             Slider(
               value: vibrationIntensity.toDouble(),
               min: 0,
               max: 100,
               divisions: 100,
+              label: "$vibrationIntensity%",
               onChanged: (value) {
                 setState(() {
                   vibrationIntensity = value.round();
@@ -630,7 +599,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Dialog to adjust sensitivity level
+// Dialog to adjust sensitivity level
   void _showSensitivitySettingsDialog() {
     showDialog(
       context: context,
@@ -639,12 +608,14 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Adjust sensitivity level (1-10):"),
+            Text("Current: $sensitivityLevel"),
+            SizedBox(height: 10),
             Slider(
               value: sensitivityLevel.toDouble(),
               min: 1,
               max: 10,
               divisions: 9,
+              label: "$sensitivityLevel",
               onChanged: (value) {
                 setState(() {
                   sensitivityLevel = value.round();
