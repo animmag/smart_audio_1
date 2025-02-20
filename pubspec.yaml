@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.2
   flutter_secure_storage: ^9.2.4
+  flutter_blue_plus:
+  get:
+  permission_handler:
 
 dev_dependencies:
   flutter_test:

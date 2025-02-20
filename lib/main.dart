@@ -411,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   blurRadius: 5,
                   spreadRadius: 2,
                   offset: Offset(0, 3),
-                )
+                ),
               ],
             ),
             child: Column(
@@ -444,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 20),
-          // Battery Status
+          // Microcontroller Battery Status
           Container(
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -456,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   blurRadius: 5,
                   spreadRadius: 2,
                   offset: Offset(0, 3),
-                )
+                ),
               ],
             ),
             child: Column(
@@ -464,16 +464,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text("Battery Status", style: TextStyle(fontSize: 18)),
                 SizedBox(height: 10),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Column(
-                      children: [
-                        Icon(Icons.headset, size: 40, color: Colors.teal[900]),
-                        SizedBox(height: 5),
-                        Text("Headphones"),
-                        Text("$headphoneBattery%"),
-                      ],
-                    ),
                     Column(
                       children: [
                         Icon(Icons.memory, size: 40, color: Colors.teal[900]),
@@ -481,6 +473,47 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text("Microcontroller"),
                         Text("$microcontrollerBattery%"),
                       ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          // Listening Mode Status
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.teal[100],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 5,
+                  spreadRadius: 2,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text("Listening Mode", style: TextStyle(fontSize: 18)),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      isListening ? Icons.volume_up : Icons.volume_off,
+                      color: isListening ? Colors.green : Colors.red,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      isListening ? "Listening" : "Off",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isListening ? Colors.green : Colors.red,
+                      ),
                     ),
                   ],
                 ),
@@ -504,7 +537,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// Device Features Screen
   Widget _buildDeviceFeaturesScreen() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -583,7 +615,80 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          SizedBox(height: 10),
+          // Manual Vibration Button
+          Card(
+            child: ListTile(
+              title: Text("Test Vibration"),
+              trailing: IconButton(
+                icon: Icon(Icons.vibration, color: Colors.teal[900]),
+                onPressed: () {
+                  _triggerManualVibration();
+                },
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          // Acknowledge Button
+          Card(
+            child: ListTile(
+              title: Text("Acknowledge Alert"),
+              trailing: ElevatedButton(
+                onPressed: () {
+                  _showAcknowledgeDialog();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Red background
+                  foregroundColor: Colors.white, // White text
+                ),
+                child: Text("Acknowledge"),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+// Function to show acknowledge dialog
+  void _showAcknowledgeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Acknowledge Alert"),
+        content: Text("Are you sure you want to acknowledge this alert?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+            },
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              // Simulate acknowledging the alert
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Acknowledgement received!"),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+              Navigator.pop(context); // Close the dialog
+            },
+            child: Text("Acknowledge"),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Function to trigger manual vibration
+  void _triggerManualVibration() {
+    // Simulate vibration (you can replace this with actual vibration logic later)
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Vibration triggered!"),
+        duration: Duration(seconds: 1),
       ),
     );
   }
@@ -619,17 +724,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Save vibration intensity to SharedPreferences
   Future<void> _saveVibrationIntensity(int value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('vibrationIntensity', value);
   }
 
+// Save sensitivity level to SharedPreferences
   Future<void> _saveSensitivityLevel(int value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('sensitivityLevel', value);
   }
 
-  // Dialog to adjust vibration intensity
+// Dialog to adjust vibration intensity
   void _showVibrationSettingsDialog() {
     int tempVibrationIntensity = vibrationIntensity; // Temporary variable
 
@@ -661,18 +768,19 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Close the dialog without saving
                 },
                 child: Text("Cancel"),
               ),
               TextButton(
                 onPressed: () async {
+                  // Update the main state and save the value
                   setState(() {
                     vibrationIntensity = tempVibrationIntensity;
                   });
                   await _saveVibrationIntensity(
                       vibrationIntensity); // Save value
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Close the dialog
                 },
                 child: Text("Save"),
               ),
@@ -715,17 +823,18 @@ class _HomeScreenState extends State<HomeScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Close the dialog without saving
                 },
                 child: Text("Cancel"),
               ),
               TextButton(
                 onPressed: () async {
+                  // Update the main state and save the value
                   setState(() {
                     sensitivityLevel = tempSensitivityLevel;
                   });
                   await _saveSensitivityLevel(sensitivityLevel); // Save value
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Close the dialog
                 },
                 child: Text("Save"),
               ),
