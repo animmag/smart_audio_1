@@ -1114,17 +1114,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-// Function to trigger manual vibration
-  // void _triggerManualVibration() {
-  // Simulate vibration (you can replace this with actual vibration logic later)
-  // ScaffoldMessenger.of(context).showSnackBar(
-  // SnackBar(
-  // content: Text("Vibration triggered!"),
-  //duration: Duration(seconds: 1),
-  // ),
-  //);
-  // }
-
   void _showWakeWordDialog() {
     TextEditingController wakeWordController = TextEditingController();
     showDialog(
@@ -1169,67 +1158,67 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _showVibrationSettingsDialog() {
+    int tempIntensity =
+        vibrationIntensity; // Moved outside to persist during dialog
+
     showDialog(
       context: context,
       builder: (context) {
-        int tempIntensity =
-            vibrationIntensity; // Temporary value for user adjustment
-        return AlertDialog(
-          title: Text("Vibration Settings"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("Adjust vibration intensity:"),
-              Slider(
-                value: tempIntensity.toDouble(),
-                min: 35, // ✅ Adjusted minimum value
-                max: 100, // ✅ Adjusted maximum value
-                divisions:
-                    65, // ✅ Correct division count (so movement is smooth)
-                label: "$tempIntensity%",
-                onChanged: (value) {
-                  setState(() {
-                    tempIntensity = value.toInt();
-                  });
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Cancel dialog
-              },
-              child: Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                // ✅ Save new intensity value
-                setState(() {
-                  vibrationIntensity = tempIntensity;
-                });
-
-                // ✅ Save intensity to SharedPreferences for persistence
-                await _saveVibrationIntensity(tempIntensity);
-
-                // ✅ Send vibration intensity as a string to the microcontroller
-                _sendCommandToMicrocontroller(
-                    "VIBRATION_INTENSITY:$vibrationIntensity");
-
-                // ✅ Notify user of update
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content:
-                        Text("Vibration intensity set to $vibrationIntensity%"),
-                    duration: Duration(seconds: 2),
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AlertDialog(
+              title: Text("Vibration Settings"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Adjust vibration intensity: $tempIntensity%"),
+                  Slider(
+                    value: tempIntensity.toDouble(),
+                    min: 35,
+                    max: 100,
+                    divisions: 65,
+                    label: "$tempIntensity%",
+                    onChanged: (value) {
+                      setLocalState(() {
+                        tempIntensity = value.toInt();
+                      });
+                    },
                   ),
-                );
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Cancel dialog
+                  },
+                  child: Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    setState(() {
+                      vibrationIntensity = tempIntensity;
+                    });
 
-                Navigator.pop(context); // Close dialog
-              },
-              child: Text("Save"),
-            ),
-          ],
+                    await _saveVibrationIntensity(tempIntensity);
+
+                    _sendCommandToMicrocontroller(
+                        "VIBRATION_INTENSITY:$vibrationIntensity");
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            "Vibration intensity set to $vibrationIntensity%"),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+
+                    Navigator.pop(context); // Close dialog
+                  },
+                  child: Text("Save"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
