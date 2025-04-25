@@ -1,0 +1,2 @@
+C:/smart_audio_1/android/app/.cxx/Debug/2o4z1k2d/x86/CMakeFiles/edit_cache.dir
+C:/smart_audio_1/android/app/.cxx/Debug/2o4z1k2d/x86/CMakeFiles/rebuild_cache.dir
